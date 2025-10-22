@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -6,14 +7,16 @@ public class MenuController : MonoBehaviour
 {
     [SerializeField] private Button _startButton;
     [Inject] private SceneLoader _sceneLoader;
+    [Inject] private LoadScreenService _loadScreenService;
 
     private void Awake()
     {
-        _startButton.onClick.AddListener(StartGame);
+        _startButton.onClick.AddListener(async () => await StartGame());
     }
 
-    public void StartGame()
+    public async Task StartGame()
     {
-        _sceneLoader.LoadGameScene();
+        await _loadScreenService.Show();
+        await _sceneLoader.LoadGameScene();
     }
 }

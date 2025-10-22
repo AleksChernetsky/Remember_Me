@@ -12,41 +12,54 @@ public class CardController : MonoBehaviour, IPointerClickHandler
     private Sprite _front;
     private bool _flipped;
     private Sequence _flipSequence;
+    private MatchObserver _matchObserver;
 
-
-    [Inject] private JsonImageLoader _imageLoader;
+    public int Id { get; private set; }
 
     [Inject]
-    public async void Construct(CardInfo data, string backUrl)
+    public void Construct(int id, Sprite front, Sprite back, MatchObserver matchObserver)
     {
-        _front = await _imageLoader.LoadImageFromUrlAsync(data.imageUrl);
-        _back = await _imageLoader.LoadImageFromUrlAsync(backUrl);
+        Id = id;
+        _front = front;
+        _back = back;
         _image.sprite = _back;
         _flipped = false;
+        _matchObserver = matchObserver;
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Flip();
+        if (!_flipped)
+        {
+            Flip();
+        }
     }
 
-    private void Flip()
+    public void Flip()
     {
         _flipSequence?.Kill();
-
         _flipSequence = DOTween.Sequence();
 
-        float flipTime = 0.15f;
-        float scaleUp = 1.15f;
-
+        float halfFlipTime = 0.15f;
+        float scaleUp = 1.2f;
         Sprite targetSprite = _flipped ? _back : _front;
-        Vector3 endRotation = _flipped ? Vector3.zero : new Vector3(0, 180, 0);
+        float endScaleX = _flipped ? 1f : -1f;
 
-        _flipSequence.Append(transform.DOScale(scaleUp, 0.1f));
-        _flipSequence.Append(transform.DORotate(new Vector3(0, 90, 0), flipTime)).OnComplete(() => _image.sprite = targetSprite);
-        _flipSequence.Append(transform.DORotate(endRotation, flipTime));
-        _flipSequence.Append(transform.DOScale(1f, 0.1f));
+        _flipped = true;
 
-        _flipped = !_flipped;
+        _flipSequence.Append(transform.DOScale(new Vector3(0, scaleUp, 1), halfFlipTime));
+        _flipSequence.AppendCallback(() => _image.sprite = targetSprite);
+        _flipSequence.Append(transform.DOScale(new Vector3(endScaleX, 1f, 1f), halfFlipTime));
+
+        _matchObserver.OnCardFlipped(this);
+    }
+    public void ResetFlags()
+    {
+        _flipped = false;
+    }
+
+    public void OnDestroy()
+    {
+        _flipSequence?.Kill();
     }
 }

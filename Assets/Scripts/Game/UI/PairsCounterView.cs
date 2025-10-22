@@ -5,23 +5,22 @@ public class PairsCounterView : MonoBehaviour
 {
     [SerializeField] private TMP_Text _counterText;
 
-    private int _found;
     private int _total;
 
-    public void SetTotalPairs(int total)
+    private void Start()
     {
-        _total = total;
+        _total = 0;
         UpdateText();
     }
 
-    public void IncrementFound()
+    public void IncreaseScore()
     {
-        _found++;
+        _total++;
         UpdateText();
     }
 
     private void UpdateText()
     {
-        _counterText.text = $"{_found}/{_total}";
+        _counterText.text = $"{_total}";
     }
 }
