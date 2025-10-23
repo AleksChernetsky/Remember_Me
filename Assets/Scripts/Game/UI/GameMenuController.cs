@@ -19,7 +19,7 @@ public class GameMenuController : MonoBehaviour
 
     private async Task OnHomeButtonClicked()
     {
-        await _sceneLoader.LoadMenuScene();
+        await _sceneLoader.LoadSceneAsync(Scenes.Menu);
     }
 
     private async Task OnRestartButtonClicked()

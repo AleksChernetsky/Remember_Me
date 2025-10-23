@@ -29,7 +29,7 @@ public class CardController : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!_flipped)
+        if (!_matchObserver.IsChecking && !_flipped)
         {
             Flip();
         }
@@ -57,9 +57,9 @@ public class CardController : MonoBehaviour, IPointerClickHandler
     {
         _flipped = false;
     }
-
-    public void OnDestroy()
+    public void DestroyIfMatched()
     {
+        Destroy(_image);
         _flipSequence?.Kill();
     }
 }

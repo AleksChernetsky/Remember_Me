@@ -2,28 +2,19 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum Scenes
+{
+    Menu,
+    Game
+}
+
 public class SceneLoader
 {
-    private const string MENU_SCENE = "Menu";
-    private const string GAME_SCENE = "Game";
+    private Scenes _currentScene;
 
-    public async Task LoadMenuScene()
+    public async Task LoadSceneAsync(Scenes sceneName)
     {
-        await LoadSceneAsync(MENU_SCENE);
-    }
-    public async Task LoadGameScene()
-    {
-        await LoadSceneAsync(GAME_SCENE);
-    }
-    public async Task ReloadCurrentScene()
-    {
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        await LoadSceneAsync(currentSceneName);
-    }
-
-    private async Task LoadSceneAsync(string sceneName)
-    {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName.ToString());
         asyncLoad.allowSceneActivation = false;
 
         while (asyncLoad.progress < 0.9f)
@@ -37,5 +28,12 @@ public class SceneLoader
         {
             await Task.Yield();
         }
+
+        _currentScene = sceneName;
+    }
+
+    public async Task ReloadCurrentScene()
+    {
+        await LoadSceneAsync(_currentScene);
     }
 }

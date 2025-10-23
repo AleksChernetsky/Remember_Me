@@ -42,6 +42,11 @@ public class GameManager : IInitializable
         }
 
         var shuffledCards = cardsToSpawn.OrderBy(_ => Random.value).ToList();
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying) return;
+#endif
+
         foreach (var cardInfo in shuffledCards)
         {
             var front = frontSprites[cardInfo.id];

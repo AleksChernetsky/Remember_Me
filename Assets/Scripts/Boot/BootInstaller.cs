@@ -10,7 +10,7 @@ public class BootInstaller : MonoBehaviour
     private async void Start()
     {
         await _loadScreenService.Show();
-        await _sceneLoader.LoadMenuScene();
+        await _sceneLoader.LoadSceneAsync(Scenes.Menu);
         await Task.Delay(1000);
         await _loadScreenService.Hide();
     }

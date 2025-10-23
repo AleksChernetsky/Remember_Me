@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
 
 public class MatchObserver
 {
@@ -11,6 +11,8 @@ public class MatchObserver
 
     private readonly List<CardController> _flippedCards = new();
 
+    public bool IsChecking { get; private set; } = false;
+
     public MatchObserver(GameManager gameManager, PairsCounterView pairsCounterView, SceneLoader sceneLoader, LoadScreenService loadScreenService)
     {
         _gameManager = gameManager;
@@ -19,46 +21,59 @@ public class MatchObserver
         _loadScreenService = loadScreenService;
     }
 
-    public async void OnCardFlipped(CardController card)
+    public void OnCardFlipped(CardController card)
     {
-        if (_flippedCards.Contains(card))
+        if (IsChecking)
             return;
 
         _flippedCards.Add(card);
-
         if (_flippedCards.Count < 2)
             return;
 
-        var first = _flippedCards[0];
-        var second = _flippedCards[1];
+        IsChecking = true;
+        _ = CheckForMatchAsync();
+    }
 
-        if (first.Id == second.Id)
+    private async Task CheckForMatchAsync()
+    {
+        try
         {
-            await Task.Delay(1000);
+            var first = _flippedCards[0];
+            var second = _flippedCards[1];
 
-            _pairsCounterView.IncreaseScore();
-            _gameManager.DecreaseTotalPairs();
-
-            Object.Destroy(first.gameObject);
-            Object.Destroy(second.gameObject);
-
-            if (_gameManager.GetTotalPairs() == 0)
+            if (first.Id == second.Id)
             {
-                await Task.Delay(250);
-                await _loadScreenService.Show();
-                await _sceneLoader.ReloadCurrentScene();
+                await Task.Delay(1000);
+                _pairsCounterView.IncreaseScore();
+                _gameManager.DecreaseTotalPairs();
+                first.DestroyIfMatched();
+                second.DestroyIfMatched();
+
+                if (_gameManager.GetTotalPairs() == 0)
+                {
+                    await Task.Delay(250);
+                    await _loadScreenService.Show();
+                    await _sceneLoader.ReloadCurrentScene();
+                }
             }
+            else
+            {
+                await Task.Delay(750);
+                first.Flip();
+                second.Flip();
+                first.ResetFlags();
+                second.ResetFlags();
+            }
+
+            _flippedCards.Clear();
         }
-        else
+        catch (Exception ex)
         {
-            await Task.Delay(750);
-            first.Flip();
-            second.Flip();
-
-            first.ResetFlags();
-            second.ResetFlags();
+            throw new Exception(ex.Message);
         }
-
-        _flippedCards.Clear();
+        finally
+        {
+            IsChecking = false;
+        }
     }
 }
